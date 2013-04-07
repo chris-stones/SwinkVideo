@@ -42,10 +42,12 @@ static int compress( arguments_t * args, cgt_nc * nc ) {
   {
     SwinkFileWriter swinkFileWriter( *args );
     
+    printf("compressing %s [%d ... %d] ( %d frames )\n", nc->ident, nc->first, nc->last, nc->file_count );
+    
     for(frame = nc->first; frame <= nc->last; frame++) {
 
-      if( imgAllocAndReadF( &srcImage, nc->ident, frame ) == 0 ) {
-
+      if( imgAllocAndReadF( &srcImage, nc->nc, frame ) == 0 ) {
+	
 	if(!dstImage) {
 
 	  if( ( err = imgAllocImage( &dstImage ) ) != 0)
@@ -59,10 +61,14 @@ static int compress( arguments_t * args, cgt_nc * nc ) {
 	    goto err0;
 	}
 
+	printf("compressing frame %d.\n\tphase 1...\n", frame);
 	if( ( err = imguCopyImage( dstImage, srcImage ) ) != 0 )
 	  goto err0;
 	
+	printf("\tphase 2...\n");
 	swinkFileWriter.WriteFrame( dstImage );
+	
+	printf("\tdone.\n");
 
 	imgFreeAll( srcImage );
 	srcImage = NULL;
@@ -71,7 +77,8 @@ static int compress( arguments_t * args, cgt_nc * nc ) {
   }
   
 err0:
-
+  if(err)
+    printf("ERROR\n");
   imgFreeAll(dstImage);
   imgFreeAll(srcImage);
 
@@ -86,8 +93,14 @@ int main(int argc, char *argv[]) {
   
   cgt_nc * nc = cgt_readnc(handle);
   
-  if( nc )   
+  if( nc ) {
+    
      compress( &args, nc );
+     
+  } else {
+    
+      printf("couldnt find an animation!\n");
+  }
  
   cgt_closenc( handle );
   

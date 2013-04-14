@@ -48,6 +48,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'f':
       {
+	if(strcasecmp(arg,"rgb24")==0) {
+	  arguments->format = IMG_FMT_RGB24;
+	  break;
+	}
 	if(strcasecmp(arg,"rgba32")==0) {
 	  arguments->format = IMG_FMT_RGBA32_PMA;
 	  break;

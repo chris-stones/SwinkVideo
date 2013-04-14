@@ -6,3 +6,4 @@ project(SwinkVideo)
 
 add_subdirectory(SwinkIt)
 
+add_subdirectory(SwinkPlayer)

@@ -6,9 +6,9 @@
 #include<string.h>
 #include<exception>
 #include<libimg.h>
-
 #include<assert.h>
 
+#include "FrameBuffer.hpp"
 #include "lz4hc.h"
 #include "lz4.h"
 
@@ -79,15 +79,25 @@ public:
     if( index == 0 )
       First( img );
     
-    assert( imgGetChannels(img->format) == 1 && "todo - implement YCbCr colourspace!" );
+ //   assert( imgGetChannels(img->format) == 1 && "todo - implement YCbCr colourspace!" );
     
-    int src_len = img->linearsize[0];
+    int src_len = img->linearsize[0] + img->linearsize[1] + img->linearsize[2] + img->linearsize[3];
+    
+    FrameBuffer srcBuffer( src_len );
+    {
+      int offset = 0;
+      for(int i=0; i<imgGetChannels(img->format); i++) {
+	memcpy( srcBuffer.BufferOffset(offset), img->data.channel[i], img->linearsize[i] );
+	offset += img->linearsize[i];
+      }
+    }
+    
     void * cdata = malloc( LZ4_compressBound( src_len ) );
     
     if(!cdata)
       throw OutputMemoryException();
     
-    unsigned int csize = LZ4_compressHC((const char *)(img->data.channel[0]), (char *)(cdata), src_len );
+    unsigned int csize = LZ4_compressHC((const char *)srcBuffer.GetBuffer(), (char *)(cdata), src_len );
     
     Seek( 0, SEEK_END );
     
@@ -100,7 +110,13 @@ public:
     frame_header.compressed_size = csize;
     frame_header.uncompressed_size = src_len;
     frame_header.channel[0].uncompressed_offset = 0;
-    frame_header.channel[0].uncompressed_size = src_len;
+    frame_header.channel[1].uncompressed_offset = frame_header.channel[0].uncompressed_offset + img->linearsize[0];
+    frame_header.channel[2].uncompressed_offset = frame_header.channel[1].uncompressed_offset + img->linearsize[1];
+    frame_header.channel[3].uncompressed_offset = frame_header.channel[2].uncompressed_offset + img->linearsize[2];
+    frame_header.channel[0].uncompressed_size = img->linearsize[0];
+    frame_header.channel[1].uncompressed_size = img->linearsize[1];
+    frame_header.channel[2].uncompressed_size = img->linearsize[2];
+    frame_header.channel[3].uncompressed_size = img->linearsize[3];
     
     Write( frame_header );
     Write( cdata, csize );

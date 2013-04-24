@@ -26,6 +26,22 @@ static void __report_gl_err(const char * file, const char * func, int line) {
 #define GL_ERROR() __report_gl_err(__FILE__,__FUNCTION__,__LINE__)
 
 
+#include<stdint.h>
+
+typedef uint64_t vadd_type_t;
+
+/*
+static void vadd( vadd_type_t * __restrict__ _b0, vadd_type_t * __restrict__ _b1, size_t size ) {
+  
+  vadd_type_t *b0 = (vadd_type_t *)__builtin_assume_aligned(_b0, 16);
+  vadd_type_t *b1 = (vadd_type_t *)__builtin_assume_aligned(_b1, 16);
+    
+  for(int p=0; p<size/sizeof(vadd_type_t); p++)
+    b0[p] += b1[p];
+}
+*/
+
+void vadd( uint64_t * __restrict__ _b0, uint64_t * __restrict__ _b1, size_t size );
 
 int main(int argc, char ** argv) {
   
@@ -58,7 +74,6 @@ int main(int argc, char ** argv) {
   {
     fileReaderFFMPEG = new FFMPEGReader( argv[1] );
     w = fileReaderFFMPEG->GetWidth();
-    w = 576;
     h = fileReaderFFMPEG->GetHeight();
   }
   
@@ -82,16 +97,21 @@ int main(int argc, char ** argv) {
   GLuint tex[4] = {0, };
   int totalFrameSize = 0;
 
-  void * bufferSWINK = NULL; 
+  void * bufferSWINK0 = NULL; 
+  void * bufferSWINK1 = NULL; 
   
-  create_texture(w, h, fmt, tex );
+  bool texLoaded = false;
   
   if( fileReaderSWINK ) {
     
     for(int i=0;i<4;i++)
       totalFrameSize += imgGetLinearSize( fmt ,w,h,i );
     
-    bufferSWINK = (void*)malloc( totalFrameSize );
+//    bufferSWINK0 = (void*)malloc( totalFrameSize );
+//    bufferSWINK1 = (void*)malloc( totalFrameSize );
+      
+      posix_memalign(&bufferSWINK0, 16, totalFrameSize);
+      posix_memalign(&bufferSWINK1, 16, totalFrameSize);
   }
   
   GLuint gl_program = 0;
@@ -120,36 +140,65 @@ int main(int argc, char ** argv) {
       }
     }
     
-    glClear( GL_COLOR_BUFFER_BIT );
+    //glClear( GL_COLOR_BUFFER_BIT );
     
     if( fileReaderSWINK ) {
      
       const SwinkFileReader::swink_frame_header * frame_header = 
 	fileReaderSWINK->ReadFrame( compressedBuffer );
       
-      compressedBuffer.Decompress(bufferSWINK, totalFrameSize);
+      if(frame_header->frame_no) {
+	
+	compressedBuffer.Decompress(bufferSWINK0, totalFrameSize);
+	
+	vadd_type_t * b0 = (vadd_type_t*)bufferSWINK0;
+	vadd_type_t * b1 = (vadd_type_t*)bufferSWINK1;
+	
+//	for(int p=0; p<totalFrameSize; p++) {
+//	  b1[p] += b0[p];
+//	}
+	vadd(b1, b0, totalFrameSize);
+	
+      }
+      else {
+	compressedBuffer.Decompress(bufferSWINK1, totalFrameSize);
+      }
+	
+      
+      if(!texLoaded) {
+	create_texture(w, h, fmt, tex );
+	texLoaded = true;
+      }
       
       for(int i =0; i<imgGetChannels(fmt); i++) {
-	update_texture( i, tex[i], w, h, static_cast<char*>(bufferSWINK) + frame_header->channel[i].uncompressed_offset, frame_header->channel[i].uncompressed_size , fmt );
+	update_texture( i, tex[i], w, h, static_cast<char*>(bufferSWINK1) + frame_header->channel[i].uncompressed_offset, frame_header->channel[i].uncompressed_size , fmt );
       }
     }
     else if( fileReaderFFMPEG ) {
      
       const AVFrame * frame = fileReaderFFMPEG->Read();
       
-      
-      
-      if(frame)
-	for(int i =0; i<imgGetChannels(fmt); i++) {
-//	  printf("LINEWIDTH %d %d\n", i, frame->linesize[i]);
-	  update_texture( i, tex[i], w, h, frame->data[i], 0 ,fmt);
+      if(frame) {
+	
+	if(!texLoaded) {
+	  create_texture(frame->linesize[0], h, fmt, tex );
+	  texLoaded = true;
 	}
+	
+	for(int i =0; i<imgGetChannels(fmt); i++) {
+
+	  update_texture( i, tex[i], frame->linesize[0], h, frame->data[i], 0 ,fmt);
+	}
+      }
     }
+    
+//    getchar();
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
       
     GL_ERROR();
    
+    rh_window_swapbuffers( window );
     rh_window_swapbuffers( window );
   }
   

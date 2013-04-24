@@ -19,6 +19,7 @@ class SwinkFileReader {
     int  frames;
     int  format;
     int  first_header_offset;
+    int  largest_decompressed_frame;
   };
 
 public:
@@ -35,6 +36,13 @@ public:
       int uncompressed_offset;
       int uncompressed_size;
     } channel [4];
+    
+    enum {
+      LZ4_WHOLEFRAME_ADD_U64 = 0,
+      LZ4_BLOCKARRAY_ADD_U64 = 1,
+    };
+    
+    unsigned char frame_type;
   };
 private:
   

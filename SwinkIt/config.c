@@ -116,7 +116,7 @@ arguments_t read_args(int argc, char ** argv ) {
   memset(&args,0,sizeof args);
   
   // defaults
-  args.format = IMG_FMT_DXT4;
+  args.format = IMG_FMT_YUV420P;
   
   argp_parse (&argp, argc, argv, 0, 0, &args);
   

@@ -1,7 +1,12 @@
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#ifdef TARGET_GLES2
+  #include <EGL/egl.h>
+  #include <GLES2/gl2.h>
+#else
+  #define GL_GLEXT_PROTOTYPES
+  #include <GL/gl.h>
+  #include <GL/glext.h>
+#endif
 
 #include <alloca.h>
 #include <string.h>
@@ -134,7 +139,7 @@ void create_texture( int w, int h, int format, GLuint * textures ) {
       glTexImage2D(
 	GL_TEXTURE_2D,
 	0,
-	1, // internal format
+	imgFormatToGlFormat( format ), //1, // internal format
 	CrCbAdjustResolution(w,channel), 
 	CrCbAdjustResolution(h,channel),
 	0,

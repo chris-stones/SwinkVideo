@@ -1,6 +1,15 @@
 
 #include<rh_window.h>
-#include<GL/gl.h>
+
+#ifdef TARGET_GLES2
+  #include <EGL/egl.h>
+  #include <GLES2/gl2.h>
+#else
+  #define GL_GLEXT_PROTOTYPES
+  #include <GL/gl.h>
+  #include <GL/glext.h>
+#endif
+
 #include<libimg.h>
 
 #include "SwinkFileReader.hpp"
@@ -86,7 +95,7 @@ int main(int argc, char ** argv) {
   rh_window_create(&window, window_attr, screen);
   if( window_attr )
     rh_window_attr_destroy( window_attr );
-  rh_render_create(&render,screen, 2,1,0);
+  rh_render_create(&render,window, 2,1,0);
   rh_bind_render_window(render, window);
   rh_input_create(&input, window);
   
@@ -122,6 +131,8 @@ int main(int argc, char ** argv) {
     gl_program = create_ycbcr_program();
     
   GLuint gl_vbuff = create_vbuffer(gl_program );
+  
+  glClearColor(1.0f,0.0f,1.0f,1.0f);
   
   while(!exitflag) {
   
@@ -166,6 +177,8 @@ int main(int argc, char ** argv) {
 	
       
       if(!texLoaded) {
+	
+	//create_texture(/*w*/2048, /*h*/2048, fmt, tex );
 	create_texture(w, h, fmt, tex );
 	texLoaded = true;
       }
@@ -198,8 +211,11 @@ int main(int argc, char ** argv) {
       
     GL_ERROR();
    
+//    rh_window_swapbuffers( window );
+    
     rh_window_swapbuffers( window );
-    rh_window_swapbuffers( window );
+    
+    glClear(GL_COLOR_BUFFER_BIT);
   }
   
   rh_input_destroy(input);

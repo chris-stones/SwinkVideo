@@ -1,7 +1,12 @@
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#ifdef TARGET_GLES2
+  #include <EGL/egl.h>
+  #include <GLES2/gl2.h>
+#else
+  #define GL_GLEXT_PROTOTYPES
+  #include <GL/gl.h>
+  #include <GL/glext.h>
+#endif
 
 #include <alloca.h>
 #include <string.h>

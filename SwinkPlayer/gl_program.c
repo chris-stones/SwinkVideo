@@ -1,7 +1,13 @@
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+
+#ifdef TARGET_GLES2
+  #include <EGL/egl.h>
+  #include <GLES2/gl2.h>
+#else
+  #define GL_GLEXT_PROTOTYPES
+  #include <GL/gl.h>
+  #include <GL/glext.h>
+#endif
 
 #include <alloca.h>
 #include <string.h>
@@ -106,6 +112,7 @@ static GLuint _create_ycbcr_program( ) {
 
 
 	static const GLchar fragment_shader_src[] =
+		"precision mediump float;\n"
 		"varying vec2 texcoordVar;\n"
 		"uniform sampler2D texSamp0;\n"
 		"uniform sampler2D texSamp1;\n"
@@ -115,18 +122,14 @@ static GLuint _create_ycbcr_program( ) {
 		"{\n"
 		"  vec3 ycbcr;\n"
 		"  vec3 rgb;\n"
-		"  float a;\n"
 		"  ycbcr.x = texture2D( texSamp0, texcoordVar ).r;\n"
 		"  ycbcr.y = texture2D( texSamp1, texcoordVar ).r - 0.5;\n"
 		"  ycbcr.z = texture2D( texSamp2, texcoordVar ).r - 0.5;\n"
-//		"  ycbcr.x = texture2D( texSamp0, texcoordVar ).r + noise1(texcoordVar.x);\n"
-//		"  ycbcr.y = texture2D( texSamp1, texcoordVar ).r + noise1(texcoordVar.x) - 0.5;\n"
-//		"  ycbcr.z = texture2D( texSamp2, texcoordVar ).r + noise1(texcoordVar.x) - 0.5;\n"
-		"  a       = 1.0;\n"
 		"  rgb = mat3(      1,             1,       1,\n"
 		"	            0,       -.21482, 2.12798,\n"
 		"	            1.28033, -.38059,       0) * ycbcr;\n"
-		"  gl_FragColor = vec4(rgb,a);\n"
+//		"  gl_FragColor = vec4(rgb,1.0);\n"
+		"  gl_FragColor = vec4(rgb.x,rgb.y,rgb.z,1.0);\n"
 		"}\n";
 
 	return create_simple_program(

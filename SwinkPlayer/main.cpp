@@ -134,6 +134,8 @@ int main(int argc, char ** argv) {
   
   glClearColor(1.0f,0.0f,1.0f,1.0f);
   
+  int frames = 0;
+  
   while(!exitflag) {
   
     while(( input_data = rh_input_get( input ) )) {
@@ -215,7 +217,12 @@ int main(int argc, char ** argv) {
     
     rh_window_swapbuffers( window );
     
-    glClear(GL_COLOR_BUFFER_BIT);
+//    glClear(GL_COLOR_BUFFER_BIT);
+    
+    frames++;
+    
+    if( frames >= 30*20 )
+      exitflag = true;
   }
   
   rh_input_destroy(input);

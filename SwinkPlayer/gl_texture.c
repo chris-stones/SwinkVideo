@@ -47,6 +47,7 @@ static int CrCbAdjustResolution(int res,int channel) {
 static GLenum imgFormatToGlFormat( int fmt ) {
  
   if( ( fmt & IMG_FMT_COMPONENT_PLANAR ) == IMG_FMT_COMPONENT_PLANAR )
+//    return GL_RED;
     return GL_LUMINANCE;
   
   if( ( fmt & IMG_FMT_DXT1 ) == IMG_FMT_DXT1 )

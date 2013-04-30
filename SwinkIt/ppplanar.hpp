@@ -21,11 +21,11 @@ class PPPlanar {
       for( int p=0; p<img->linearsize[c]; p++ ) {
 	
 	if(c==0)
-	  buffer[p] &= (~3);
+	  buffer[p] &= (~7);
 	else if(c==3)
 	  buffer[p] = (buffer[p] >> 3);
 	else
-	  buffer[p] &= (~3);
+	  buffer[p] &= (~7);
       }
     }
   }

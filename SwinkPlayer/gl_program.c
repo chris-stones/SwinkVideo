@@ -112,7 +112,9 @@ static GLuint _create_ycbcr_program( ) {
 
 
 	static const GLchar fragment_shader_src[] =
+#ifdef TARGET_GLES2
 		"precision mediump float;\n"
+#endif
 		"varying vec2 texcoordVar;\n"
 		"uniform sampler2D texSamp0;\n"
 		"uniform sampler2D texSamp1;\n"

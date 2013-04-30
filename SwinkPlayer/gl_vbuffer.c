@@ -17,10 +17,10 @@
 
 static const GLfloat vbuff_data[] = {
 //    x     y     s     t
-  -1.0f, 1.0f, 0.0f, 0.0f, // tl
-  -1.0f,-1.0f, 0.0f, 1.0f, // bl
-   1.0f, 1.0f, 1.0f, 0.0f, // tr
-   1.0f,-1.0f, 1.0f, 1.0f, // br
+  -1.0f*1.0f, 1.0f*1.0f, 0.0f, 0.0f, // tl
+  -1.0f*1.0f,-1.0f*1.0f, 0.0f, 1.0f, // bl
+   1.0f*1.0f, 1.0f*1.0f, 1.0f, 0.0f, // tr
+   1.0f*1.0f,-1.0f*1.0f, 1.0f, 1.0f, // br
 };
 
 GLuint create_vbuffer(GLuint prog) {
